@@ -1,9 +1,54 @@
-export const login = (req, res) => {
-    console.log(req.body);
-    res.json({ok: 'login'})
+import { User } from "../models/User.js";
+import { generateRefreshToken, generateToken } from "../utils/tokenManager.js";
+
+export const register = async (req, res) => {
+    const { email, password } = req.body;
+    try {
+        // Alternativa buscando por email
+        let user = await User.findOne({ email });
+        if (user) throw { code: 11000 };
+
+        user = new User({ email, password });
+        await user.save();
+
+        //Status code created
+        return res.status(201).json({ok: 'register'});
+
+        // Generar el token JWT
+        const { token, expiresIn } = generateToken(user.id);
+        //generateRefreshToken(user.id, res);
+
+        //return res.status(201).json({ token, expiresIn });
+    } catch (error) {
+        console.log(error);
+        // Alternativa por defecto mongoose
+        if (error.code === 11000) {
+            return res.status(400).json({ error: "Ya existe este usuario" });
+        }
+        return res.status(500).json({ error: "Error de servidor" });
+    }
 }
 
-export const register = (req, res) => {
-    console.log(req.body);
-    res.json({ok: 'register'})
-}
+export const login = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        let user = await User.findOne({ email });
+        if (!user)
+            return res.status(403).json({ error: "No existe este usuario" });
+
+        const respuestaPassword = await user.comparePassword(password);
+        if (!respuestaPassword)
+            return res.status(403).json({ error: "Contraseña incorrecta" });
+
+        // Generar el token JWT
+        const { token, expiresIn } = generateToken(user.id);
+        return res.json({ token });
+        //generateRefreshToken(user.id, res);
+
+        //return res.json({ token, expiresIn });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ error: "Error de servidor" });
+    }
+};
