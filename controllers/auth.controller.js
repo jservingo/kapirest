@@ -44,11 +44,21 @@ export const login = async (req, res) => {
         // Generar el token JWT
         const { token, expiresIn } = generateToken(user.id);
         return res.json({ token });
+        
         //generateRefreshToken(user.id, res);
-
         //return res.json({ token, expiresIn });
     } catch (error) {
         console.log(error);
         return res.status(500).json({ error: "Error de servidor" });
+    }
+};
+
+export const infoUser = async (req, res) => {
+    //return res.json({user: "hola soy yo"})
+    try {
+        const user = await User.findById(req.uid).lean();
+        return res.json({ email: user.email, uid: user._id });
+    } catch (error) {
+        return res.status(500).json({ error: "error de server" });
     }
 };

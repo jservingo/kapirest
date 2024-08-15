@@ -4,7 +4,8 @@ export const generateToken = (uid) => {
 
     try {
         //El payload es { uid }
-        const token = jwt.sign({ uid }, process.env.JWT_SECRET, { expiresIn });
+        //const token = jwt.sign({ uid }, process.env.JWT_SECRET, { expiresIn });
+        const token = jwt.sign({ uid }, process.env.JWT_SECRET);
         return { token, expiresIn };
     } catch (error) {
         console.log(error);
